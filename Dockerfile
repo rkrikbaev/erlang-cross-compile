@@ -16,6 +16,7 @@ ARG ZLIB_VERSION=1.2.11
 ARG OPENSSL_VERSION=1.1.1f
 ARG NCURSES_VERSION=6.1
 ARG OTP_VERSION=22.3
+ARG UNIX_ODBC_VERSION=2.3.9
 
 # Locations
 ENV SOURCES=/opt/src
@@ -32,6 +33,7 @@ RUN mkdir -p $SOURCES && cd $_ && \
 	wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz && \
 	wget http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$NCURSES_VERSION.tar.gz && \
 	wget http://erlang.org/download/otp_src_$OTP_VERSION.tar.gz && \
+	wget http://www.unixodbc.org/unixODBC-$UNIX_ODBC_VERSION.tar.gz && \
 	for f in *.tar*; do tar xf $f && rm -rf $f; done
 
 #=============HOST========================================
@@ -61,6 +63,12 @@ RUN mkdir -p $BUILD_HOST/ncurses && cd $_ && \
 	make && \
 	make install
 
+#-----------unixODBC-----------------------------------
+RUN mkdir -p $BUILD_HOST/unixODBC && cd $_ && \
+	$SOURCES/unixODBC-$UNIX_ODBC_VERSION/configure  && \
+	make && \
+	make install
+
 #----------erlang-----------------------------------
 # some versions of erlang build fail because they cannot find appropriate version of zlib in /lib64 
 RUN mkdir -p /lib64 && cd /lib64 && \
@@ -77,6 +85,7 @@ RUN cp -R $SOURCES/otp_src_$OTP_VERSION $BUILD_HOST/erlang
 RUN	cd $BUILD_HOST/erlang && \
 	export ERL_TOP=`pwd` && \
 	./configure \
+		--with-odbc \
 		--disable-dynamic-ssl-lib \
 		--enable-builtin-zlib \
 		--with-ssl && \
@@ -120,6 +129,14 @@ RUN mkdir -p $BUILD_TARGET/ncurses && cd $_ && \
 	make && \
 	make install
 
+#-----------unixODBC-----------------------------------
+RUN mkdir -p $BUILD_TARGET/unixODBC && cd $_ && \
+	$SOURCES/unixODBC-$UNIX_ODBC_VERSION/configure \
+		--host=$TARGET_PLATFORM \
+		--prefix=$TARGET_SYSROOT && \
+	make && \
+	make install
+
 #----------erlang-----------------------------------
 RUN mkdir -p /opt/erlang-xcomp
 COPY xcomp/$TARGET_PLATFORM.conf /opt/erlang-xcomp/
@@ -143,6 +160,7 @@ RUN cd $BUILD_TARGET/erlang && \
 		--enable-builtin-zlib \
 		--with-ssl=$TARGET_SYSROOT \
 		--disable-hipe \
+		--with-odbc \
 		--disable-dynamic-ssl-lib \
 		--xcomp-conf=/opt/erlang-xcomp/$TARGET_PLATFORM.conf && \
 	./otp_build boot -a
