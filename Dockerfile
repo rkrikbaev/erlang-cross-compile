@@ -5,7 +5,7 @@ ARG GLIBC_VERSION=2.24
 # Source toolchain
 FROM vzroman/${TARGET_PLATFORM}:glibc${GLIBC_VERSION}
 MAINTAINER Roman Vozzhenikov "vzroman@gmail.com"
-ENV REFRESHED_AT 2020-04-17
+ENV REFRESHED_AT 2021-04-27
 
 # Environment
 ARG HOST_ARCH=x86_64
@@ -28,7 +28,7 @@ ENV PATH=/opt/x-tools/$TARGET_PLATFORM/bin:$PATH
 ENV TARGET_SYSROOT=/opt/x-tools/$TARGET_PLATFORM/$TARGET_PLATFORM/sysroot
 
 # Download sources
-RUN mkdir -p $SOURCES && cd $_ && \
+RUN mkdir -p $SOURCES && cd $SOURCES && \
 	wget http://zlib.net/zlib-$ZLIB_VERSION.tar.gz && \
 	wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz && \
 	wget http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$NCURSES_VERSION.tar.gz && \
@@ -40,19 +40,19 @@ RUN mkdir -p $SOURCES && cd $_ && \
 RUN mkdir -p $BUILD_HOST
 
 #------------zlib--------------------------------------
-RUN mkdir -p $BUILD_HOST/zlib && cd $_ && \
+RUN mkdir -p $BUILD_HOST/zlib && cd $BUILD_HOST/zlib && \
 	$SOURCES/zlib-$ZLIB_VERSION/configure && \
 	make && \
 	make install
 
 #-----------openssl------------------------------------
-RUN mkdir -p $BUILD_HOST/openssl && cd $_ && \
+RUN mkdir -p $BUILD_HOST/openssl && cd $BUILD_HOST/openssl && \
 	$SOURCES/openssl-$OPENSSL_VERSION/Configure linux-$HOST_ARCH && \
 	make && \
 	make install
 
 #-----------ncurses-----------------------------------
-RUN mkdir -p $BUILD_HOST/ncurses && cd $_ && \
+RUN mkdir -p $BUILD_HOST/ncurses && cd $BUILD_HOST/ncurses && \
 	$SOURCES/ncurses-$NCURSES_VERSION/configure \
 		--without-ada \
 		--without-cxx \
@@ -64,7 +64,7 @@ RUN mkdir -p $BUILD_HOST/ncurses && cd $_ && \
 	make install
 
 #-----------unixODBC-----------------------------------
-RUN mkdir -p $BUILD_HOST/unixODBC && cd $_ && \
+RUN mkdir -p $BUILD_HOST/unixODBC && cd $BUILD_HOST/unixODBC && \
 	$SOURCES/unixODBC-$UNIX_ODBC_VERSION/configure  && \
 	make && \
 	make install
@@ -96,7 +96,7 @@ RUN	cd $BUILD_HOST/erlang && \
 RUN mkdir -p $BUILD_TARGET
 
 #------------zlib--------------------------------------
-RUN mkdir -p $BUILD_TARGET/zlib && cd $_ && \
+RUN mkdir -p $BUILD_TARGET/zlib && cd $BUILD_TARGET/zlib && \
 	export CC=$TARGET_PLATFORM-gcc && \
 	$SOURCES/zlib-$ZLIB_VERSION/configure \
 		--prefix=$TARGET_SYSROOT && \
@@ -104,7 +104,7 @@ RUN mkdir -p $BUILD_TARGET/zlib && cd $_ && \
 	make install
 
 #-----------openssl------------------------------------
-RUN mkdir -p $BUILD_TARGET/openssl && cd $_ && \
+RUN mkdir -p $BUILD_TARGET/openssl && cd $BUILD_TARGET/openssl && \
 	$SOURCES/openssl-$OPENSSL_VERSION/Configure \
 		linux-generic32 \
 		--prefix=$TARGET_SYSROOT \
@@ -116,7 +116,7 @@ RUN mkdir -p $BUILD_TARGET/openssl && cd $_ && \
 	make install
 
 #-----------ncurses-----------------------------------
-RUN mkdir -p $BUILD_TARGET/ncurses && cd $_ && \
+RUN mkdir -p $BUILD_TARGET/ncurses && cd $BUILD_TARGET/ncurses && \
 	$SOURCES/ncurses-$NCURSES_VERSION/configure \
 		--host=$TARGET_PLATFORM \
 		--prefix=$TARGET_SYSROOT \
@@ -130,12 +130,18 @@ RUN mkdir -p $BUILD_TARGET/ncurses && cd $_ && \
 	make install
 
 #-----------unixODBC-----------------------------------
-RUN mkdir -p $BUILD_TARGET/unixODBC && cd $_ && \
+RUN mkdir -p $BUILD_TARGET/unixODBC && cd $BUILD_TARGET/unixODBC && \
 	$SOURCES/unixODBC-$UNIX_ODBC_VERSION/configure \
+		--build=$HOST_ARCH \
 		--host=$TARGET_PLATFORM \
+		--target=$TARGET_PLATFORM \
+		--with-sysroot=$TARGET_SYSROOT \
 		--prefix=$TARGET_SYSROOT && \
 	make && \
 	make install
+# When cross-compiling it searches headers in the $SYSROOT/usr/include
+RUN mkdir -p $TARGET_SYSROOT/usr/local/include && \
+	cp -R $TARGET_SYSROOT/include/* $TARGET_SYSROOT/usr/include
 
 #----------erlang-----------------------------------
 RUN mkdir -p /opt/erlang-xcomp
@@ -160,7 +166,7 @@ RUN cd $BUILD_TARGET/erlang && \
 		--enable-builtin-zlib \
 		--with-ssl=$TARGET_SYSROOT \
 		--disable-hipe \
-		--with-odbc \
+		--with-odbc=$TARGET_SYSROOT \
 		--disable-dynamic-ssl-lib \
 		--xcomp-conf=/opt/erlang-xcomp/$TARGET_PLATFORM.conf && \
 	./otp_build boot -a
