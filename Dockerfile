@@ -6,8 +6,8 @@ MAINTAINER Roman Vozzhenikov "vzroman@gmail.com"
 ENV REFRESHED_AT 2021-09-29
 
 # Target version
-ARG TARGET_PLATFORM=arm-unknown-linux-gnueabihf
-ARG GLIBC_VERSION=2.24
+# ARG TARGET_PLATFORM=arm-unknown-linux-gnueabihf
+# ARG GLIBC_VERSION=2.24
 
 # # Source toolchain
 # FROM vzroman/${TARGET_PLATFORM}:glibc${GLIBC_VERSION}
