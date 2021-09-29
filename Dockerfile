@@ -1,11 +1,18 @@
 # Target version
+ARG OS_VERSION=10.9
+
+FROM debian:${OS_VERSION}
+MAINTAINER Roman Vozzhenikov "vzroman@gmail.com"
+ENV REFRESHED_AT 2021-09-29
+
+# Target version
 ARG TARGET_PLATFORM=arm-unknown-linux-gnueabihf
 ARG GLIBC_VERSION=2.24
 
-# Source toolchain
-FROM vzroman/${TARGET_PLATFORM}:glibc${GLIBC_VERSION}
-MAINTAINER Roman Vozzhenikov "vzroman@gmail.com"
-ENV REFRESHED_AT 2021-04-27
+# # Source toolchain
+# FROM vzroman/${TARGET_PLATFORM}:glibc${GLIBC_VERSION}
+# MAINTAINER Roman Vozzhenikov "vzroman@gmail.com"
+# ENV REFRESHED_AT 2021-04-27
 
 # Environment
 ARG HOST_ARCH=x86_64
@@ -92,89 +99,89 @@ RUN	cd $BUILD_HOST/erlang && \
 	make && \
 	make install
 
-#=============TARGET========================================
-RUN mkdir -p $BUILD_TARGET
+# #=============TARGET========================================
+# RUN mkdir -p $BUILD_TARGET
 
-#------------zlib--------------------------------------
-RUN mkdir -p $BUILD_TARGET/zlib && cd $BUILD_TARGET/zlib && \
-	export CC=$TARGET_PLATFORM-gcc && \
-	$SOURCES/zlib-$ZLIB_VERSION/configure \
-		--prefix=$TARGET_SYSROOT && \
-	make && \
-	make install
+# #------------zlib--------------------------------------
+# RUN mkdir -p $BUILD_TARGET/zlib && cd $BUILD_TARGET/zlib && \
+# 	export CC=$TARGET_PLATFORM-gcc && \
+# 	$SOURCES/zlib-$ZLIB_VERSION/configure \
+# 		--prefix=$TARGET_SYSROOT && \
+# 	make && \
+# 	make install
 
-#-----------openssl------------------------------------
-RUN mkdir -p $BUILD_TARGET/openssl && cd $BUILD_TARGET/openssl && \
-	$SOURCES/openssl-$OPENSSL_VERSION/Configure \
-		linux-generic32 \
-		--prefix=$TARGET_SYSROOT \
-		--openssldir=$TARGET_SYSROOT \
-		--cross-compile-prefix=$TARGET_PLATFORM- \
-		-fPIC && \
-	make depend && \
-	make && \
-	make install
+# #-----------openssl------------------------------------
+# RUN mkdir -p $BUILD_TARGET/openssl && cd $BUILD_TARGET/openssl && \
+# 	$SOURCES/openssl-$OPENSSL_VERSION/Configure \
+# 		linux-generic32 \
+# 		--prefix=$TARGET_SYSROOT \
+# 		--openssldir=$TARGET_SYSROOT \
+# 		--cross-compile-prefix=$TARGET_PLATFORM- \
+# 		-fPIC && \
+# 	make depend && \
+# 	make && \
+# 	make install
 
-#-----------ncurses-----------------------------------
-RUN mkdir -p $BUILD_TARGET/ncurses && cd $BUILD_TARGET/ncurses && \
-	$SOURCES/ncurses-$NCURSES_VERSION/configure \
-		--host=$TARGET_PLATFORM \
-		--prefix=$TARGET_SYSROOT \
-		--without-ada \
-		--without-cxx \
-		--without-cxx-binding \
-		--without-manpages \
-		--without-progs \
-		--without-tests && \
-	make && \
-	make install
+# #-----------ncurses-----------------------------------
+# RUN mkdir -p $BUILD_TARGET/ncurses && cd $BUILD_TARGET/ncurses && \
+# 	$SOURCES/ncurses-$NCURSES_VERSION/configure \
+# 		--host=$TARGET_PLATFORM \
+# 		--prefix=$TARGET_SYSROOT \
+# 		--without-ada \
+# 		--without-cxx \
+# 		--without-cxx-binding \
+# 		--without-manpages \
+# 		--without-progs \
+# 		--without-tests && \
+# 	make && \
+# 	make install
 
-#-----------unixODBC-----------------------------------
-RUN mkdir -p $BUILD_TARGET/unixODBC && cd $BUILD_TARGET/unixODBC && \
-	$SOURCES/unixODBC-$UNIX_ODBC_VERSION/configure \
-		--build=$HOST_ARCH \
-		--host=$TARGET_PLATFORM \
-		--target=$TARGET_PLATFORM \
-		--with-sysroot=$TARGET_SYSROOT \
-		--prefix=$TARGET_SYSROOT && \
-	make && \
-	make install
-# When cross-compiling it searches headers in the $SYSROOT/usr/include
-RUN mkdir -p $TARGET_SYSROOT/usr/local/include && \
-	cp -R $TARGET_SYSROOT/include/* $TARGET_SYSROOT/usr/include
+# #-----------unixODBC-----------------------------------
+# RUN mkdir -p $BUILD_TARGET/unixODBC && cd $BUILD_TARGET/unixODBC && \
+# 	$SOURCES/unixODBC-$UNIX_ODBC_VERSION/configure \
+# 		--build=$HOST_ARCH \
+# 		--host=$TARGET_PLATFORM \
+# 		--target=$TARGET_PLATFORM \
+# 		--with-sysroot=$TARGET_SYSROOT \
+# 		--prefix=$TARGET_SYSROOT && \
+# 	make && \
+# 	make install
+# # When cross-compiling it searches headers in the $SYSROOT/usr/include
+# RUN mkdir -p $TARGET_SYSROOT/usr/local/include && \
+# 	cp -R $TARGET_SYSROOT/include/* $TARGET_SYSROOT/usr/include
 
-#----------erlang-----------------------------------
-RUN mkdir -p /opt/erlang-xcomp
-COPY xcomp/$TARGET_PLATFORM.conf /opt/erlang-xcomp/
+# #----------erlang-----------------------------------
+# RUN mkdir -p /opt/erlang-xcomp
+# COPY xcomp/$TARGET_PLATFORM.conf /opt/erlang-xcomp/
 
-# some versions of erlang build fail because they cannot find appropriate version of zlib in /lib64 
-RUN mkdir -p $TARGET_SYSROOT/lib64 && cd $TARGET_SYSROOT/lib64 && \
-	cp $TARGET_SYSROOT/lib/libz.so.1.2.11 $TARGET_SYSROOT/lib64/ && \
-	rm -rf libz.so.1 && \
-	ln -s libz.so.1.2.11 libz.so.1
+# # some versions of erlang build fail because they cannot find appropriate version of zlib in /lib64 
+# RUN mkdir -p $TARGET_SYSROOT/lib64 && cd $TARGET_SYSROOT/lib64 && \
+# 	cp $TARGET_SYSROOT/lib/libz.so.1.2.11 $TARGET_SYSROOT/lib64/ && \
+# 	rm -rf libz.so.1 && \
+# 	ln -s libz.so.1.2.11 libz.so.1
 
-# copy the source into a dedicated location
-RUN cp -R $SOURCES/otp_src_$OTP_VERSION $BUILD_TARGET/erlang
+# # copy the source into a dedicated location
+# RUN cp -R $SOURCES/otp_src_$OTP_VERSION $BUILD_TARGET/erlang
 
-# build erlang
-RUN cd $BUILD_TARGET/erlang && \
-	export ERL_TOP=`pwd` && \
-	export ARM_SYSROOT=$TARGET_SYSROOT && \
-	export ARM_TARGET=$TARGET_PLATFORM && \
-	export ARM_BUILD=$ERL_TOP/erts/autoconf/config.guess && \
-	./otp_build configure \
-		--enable-builtin-zlib \
-		--with-ssl=$TARGET_SYSROOT \
-		--disable-hipe \
-		--with-odbc=$TARGET_SYSROOT \
-		--disable-dynamic-ssl-lib \
-		--xcomp-conf=/opt/erlang-xcomp/$TARGET_PLATFORM.conf && \
-	./otp_build boot -a
+# # build erlang
+# RUN cd $BUILD_TARGET/erlang && \
+# 	export ERL_TOP=`pwd` && \
+# 	export ARM_SYSROOT=$TARGET_SYSROOT && \
+# 	export ARM_TARGET=$TARGET_PLATFORM && \
+# 	export ARM_BUILD=$ERL_TOP/erts/autoconf/config.guess && \
+# 	./otp_build configure \
+# 		--enable-builtin-zlib \
+# 		--with-ssl=$TARGET_SYSROOT \
+# 		--disable-hipe \
+# 		--with-odbc=$TARGET_SYSROOT \
+# 		--disable-dynamic-ssl-lib \
+# 		--xcomp-conf=/opt/erlang-xcomp/$TARGET_PLATFORM.conf && \
+# 	./otp_build boot -a
 
-RUN cd $BUILD_TARGET/erlang && \
-	./otp_build release -a /usr/local/lib/erlang_${TARGET_PLATFORM}
+# RUN cd $BUILD_TARGET/erlang && \
+# 	./otp_build release -a /usr/local/lib/erlang_${TARGET_PLATFORM}
 	
-RUN cd /usr/local/lib/erlang_${TARGET_PLATFORM} && \
-	./Install -minimal /usr/local/lib/erlang_${TARGET_PLATFORM}
+# RUN cd /usr/local/lib/erlang_${TARGET_PLATFORM} && \
+# 	./Install -minimal /usr/local/lib/erlang_${TARGET_PLATFORM}
 
 ENTRYPOINT [ "/bin/bash" ]
