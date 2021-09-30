@@ -40,18 +40,18 @@ RUN apt-get -y update && \
 	apt-get -y install build-essential && \
 	apt-get -y install \
 		wget \
-		git
-# 		bzip2 \
-# 		bison \
-# 		help2man \
-# 		texinfo \
-# 		flex \
-# 		unzip \
-# 		file \
-# 		gawk \
-# 		libtool libtool-bin \
-# 		ncurses-dev \
-# 		cmake
+		git \
+		bzip2 \
+		bison \
+		help2man \
+		texinfo \
+		flex \
+		unzip \
+		file \
+		gawk \
+		libtool libtool-bin \
+		ncurses-dev \
+		cmake
 
 # Download sources
 RUN mkdir -p $SOURCES && cd $SOURCES && \
