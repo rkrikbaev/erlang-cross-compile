@@ -34,6 +34,25 @@ ENV BUILD_TARGET=$ERLANG_BUILD/$TARGET_PLATFORM
 ENV PATH=/opt/x-tools/$TARGET_PLATFORM/bin:$PATH
 ENV TARGET_SYSROOT=/opt/x-tools/$TARGET_PLATFORM/$TARGET_PLATFORM/sysroot
 
+# Install dependences
+RUN apt-get -y update && \
+	apt-get -y upgrade && \
+	apt-get -y install build-essential && \
+	apt-get -y install \
+		wget \
+		git \
+		bzip2 \
+		bison \
+		help2man \
+		texinfo \
+		flex \
+		unzip \
+		file \
+		gawk \
+		libtool libtool-bin \
+		ncurses-dev \
+		cmake
+
 # Download sources
 RUN mkdir -p $SOURCES && cd $SOURCES && \
 	wget http://zlib.net/zlib-$ZLIB_VERSION.tar.gz && \
