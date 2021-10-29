@@ -1,38 +1,26 @@
 # Target version
 ARG OS_VERSION=10.9
-
 FROM debian:${OS_VERSION}
+
+# Source toolchain
 MAINTAINER Roman Vozzhenikov "vzroman@gmail.com"
-ENV REFRESHED_AT 2021-09-29
+ENV REFRESHED_AT 2021-10-27
 
-# Target version
-# ARG TARGET_PLATFORM=arm-unknown-linux-gnueabihf
-# ARG GLIBC_VERSION=2.24
-
-# # Source toolchain
-# FROM vzroman/${TARGET_PLATFORM}:glibc${GLIBC_VERSION}
-# MAINTAINER Roman Vozzhenikov "vzroman@gmail.com"
-# ENV REFRESHED_AT 2021-04-27
-
-# Environment
-ENV HOST_ARCH=x86_64
-ENV TARGET_PLATFORM=arm-unknown-linux-gnueabihf
+# Environment for ..
+ARG HOST_ARCH=x86_64
 
 # Erlang environment
-ENV ZLIB_VERSION=1.2.11
-ENV OPENSSL_VERSION=1.1.1f
-ENV NCURSES_VERSION=6.1
-ENV OTP_VERSION=22.3
-ENV UNIX_ODBC_VERSION=2.3.9
+ARG ZLIB_VERSION=1.2.11
+ARG OPENSSL_VERSION=1.1.1f
+ARG NCURSES_VERSION=6.1
+ARG OTP_VERSION=22.3
+ARG UNIX_ODBC_VERSION=2.3.9
 
 # Locations
 ENV SOURCES=/opt/src
 ENV BUILD=/opt/build
 ENV ERLANG_BUILD=$SOURCES/erlang
 ENV BUILD_HOST=$ERLANG_BUILD/$HOST_ARCH
-ENV BUILD_TARGET=$ERLANG_BUILD/$TARGET_PLATFORM
-ENV PATH=/opt/x-tools/$TARGET_PLATFORM/bin:$PATH
-ENV TARGET_SYSROOT=/opt/x-tools/$TARGET_PLATFORM/$TARGET_PLATFORM/sysroot
 
 # Install dependences
 RUN apt-get -y update && \
