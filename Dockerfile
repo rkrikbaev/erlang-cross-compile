@@ -3,8 +3,8 @@ ARG OS_VERSION=10.9
 FROM debian:${OS_VERSION}
 
 # Source toolchain
-MAINTAINER Roman Vozzhenikov "vzroman@faceplate.io"
-ENV REFRESHED_AT 2021-10-27
+MAINTAINER Krikbaev Rustam "rk@faceplate.io"
+ENV REFRESHED_AT 2022-11-17
 
 # Environment for ..
 ARG BUILD_ARCH=x86_64
