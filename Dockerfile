@@ -25,22 +25,22 @@ RUN mkdir -p $BUILD
 
 # Install dependences
 RUN apt-get -y update && \
-	apt-get -y upgrade && \
-	apt-get -y install build-essential && \
-	apt-get -y install \
-		wget \
-		git \
-		bzip2 \
-		bison \
-		help2man \
-		texinfo \
-		flex \
-		unzip \
-		file \
-		gawk \
-		libtool libtool-bin \
-		ncurses-dev \
-		cmake
+        apt-get -y upgrade && \
+        apt-get -y install build-essential && \
+        apt-get -y install \
+                wget \
+                git \
+                bzip2 \
+                bison \
+                help2man \
+                texinfo \
+                flex \
+                unzip \
+                file \
+                gawk \
+                libtool libtool-bin \
+                ncurses-dev \
+                cmake
 
 # Download sources
 RUN mkdir -p $SOURCES && cd $SOURCES && \
@@ -84,9 +84,9 @@ RUN mkdir -p $BUILD/unixODBC && cd $BUILD/unixODBC && \
 #----------erlang-----------------------------------
 # some versions of erlang build fail because they cannot find appropriate version of zlib in /lib64 
 RUN mkdir -p /lib64 && cd /lib64 && \
-	cp /usr/local/lib/libz.so.1.2.11 /lib64/ && \
-	rm -rf libz.so.1 && \
-	ln -s libz.so.1.2.11 libz.so.1
+        cp /usr/local/lib/libz.so.1.2.11 /lib64/ && \
+        rm -rf libz.so.1 && \
+        ln -s libz.so.1.2.11 libz.so.1
 
 # copy the source into a dedicated location because erlang autotools 
 # make changes in the original source location which can affect 
